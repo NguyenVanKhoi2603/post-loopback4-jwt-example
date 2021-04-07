@@ -1,69 +1,99 @@
-# test
-
-This application is generated using [LoopBack 4 CLI](https://loopback.io/doc/en/lb4/Command-line-interface.html) with the
-[initial project layout](https://loopback.io/doc/en/lb4/Loopback-application-layout.html).
-
-## Install dependencies
-
-By default, dependencies were installed when this application was generated.
-Whenever dependencies in `package.json` are changed, run the following command:
-
-```sh
-yarn install
+# Hướng dẫn thực hiện.
+- follow: [Todo-JWT](https://github.com/strongloop/loopback-next/tree/master/examples/todo-jwt)
+- view result: [example](https://github.com/NguyenVanKhoi2603/post-loopback4-jwt-example.git)
+> Tạo project
 ```
-
-## Run the application
-
-```sh
-yarn start
+lb4 app
 ```
+> Tạo model
+````
+lb4 model
 
-You can also run `node .` to skip the build step.
+// Post: id(string), title(string), content(string), timestamp(date)
+// User: id(string), username(string), email(string)
+// UserCredential: id(string), password(string)
+````
+--> kết quả xem : [model](https://github.com/NguyenVanKhoi2603/post-loopback4-jwt-example/tree/master/src/models)
+> tạo datasouce
+````
+lb4 datasource
+// name: db
+// postgresql
+// host: localhost
+// port: 5432
+// user: postgre
+// passwpord:
+// database name: test
+````
+````
+import {inject, lifeCycleObserver, LifeCycleObserver} from '@loopback/core';
+import {juggler} from '@loopback/repository';
 
-Open http://127.0.0.1:3000 in your browser.
+const config = {
+  name: 'db',
+  connector: 'postgresql',
+  url: '',
+  host: 'localhost',
+  port: 5432,
+  user: 'postgres',
+  password: '',
+  database: 'test'
+};
 
-## Rebuild the project
+@lifeCycleObserver('datasource')
+export class DbDataSource extends juggler.DataSource
+  implements LifeCycleObserver {
+  static dataSourceName = 'db';
+  static readonly defaultConfig = config;
 
-To incrementally build the project:
+  constructor(
+    @inject('datasources.config.db', {optional: true})
+    dsConfig: object = config,
+  ) {
+    super(dsConfig);
+  }
+}
 
-```sh
-yarn run build
-```
+````
+> Tạo Relation
+````
+lb4 relation
 
-To force a full build by cleaning up cached artifacts:
+// hasOne: User -> userCredential.
+// belongsTo: userCredential -> User.
+````
+> Migrate model
+````
+npm run build
+npm run migrate
+````
+--> table được tạo ở database, kiểm tra.
+> tạo controller
+````
+lb4 controller
+// User: Empty controller
+````
+Xem file hoàn thành: [user.controller.ts](https://github.com/NguyenVanKhoi2603/post-loopback4-jwt-example/blob/master/src/controllers/user.controller.ts)
 
-```sh
-yarn run rebuild
-```
+> Thêm vào file sequence.ts: xem file hoàn thành: [sequence.ts](https://github.com/NguyenVanKhoi2603/post-loopback4-jwt-example/blob/master/src/sequence.ts)
 
-## Fix code style and formatting issues
+> Thêm vào  application.ts: xem file hoàn thành [application.ts](https://github.com/NguyenVanKhoi2603/post-loopback4-jwt-example/blob/master/src/application.ts)
 
-```sh
-yarn run lint
-```
+> Thêm func cho file user.repository.ts
+````
+// user.ropository.ts
+async findCredentials(
+    userId: typeof User.prototype.id,
+  ): Promise<UserCredential | undefined> {
+    try {
+      return await this.userCredential(userId).get();
+    } catch (err) {
+      if (err.code === 'ENTITY_NOT_FOUND') {
+        return undefined;
+      }
+      throw err;
+    }
+  }
+````
 
-To automatically fix such issues:
-
-```sh
-yarn run lint:fix
-```
-
-## Other useful commands
-
-- `yarn run migrate`: Migrate database schemas for models
-- `yarn run openapi-spec`: Generate OpenAPI spec into a file
-- `yarn run docker:build`: Build a Docker image for this application
-- `yarn run docker:run`: Run this application inside a Docker container
-
-## Tests
-
-```sh
-yarn test
-```
-
-## What's next
-
-Please check out [LoopBack 4 documentation](https://loopback.io/doc/en/lb4/) to
-understand how you can continue to add features to this application.
-
-[![LoopBack](https://github.com/strongloop/loopback-next/raw/master/docs/site/imgs/branding/Powered-by-LoopBack-Badge-(blue)-@2x.png)](http://loopback.io/)
+> yarn start.

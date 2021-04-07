@@ -1,22 +1,10 @@
-// Uncomment these imports to begin using these cool features!
-
-// import {inject} from '@loopback/core';
-
-
-// export class UserController {
-//   constructor() {}
-// }
-
 import {authenticate, TokenService} from '@loopback/authentication';
 import {
   Credentials,
   MyUserService,
   TokenServiceBindings,
-  //User,
-  //UserRepository,
   UserServiceBindings
 } from '@loopback/authentication-jwt';
-//import { UserCredential } from "../models/user-credential.model";
 import {inject} from '@loopback/core';
 import {model, property, repository} from '@loopback/repository';
 import {
@@ -74,9 +62,7 @@ export class UserController {
     @inject(SecurityBindings.USER, {optional: true})
     public user: UserProfile,
     @repository(UserRepository) protected userRepository: UserRepository,
-
     @repository(UserRepository) protected userCredentialRepository: UserCredentialRepository,
-
   ) { }
 
   @post('/users/login', {
@@ -159,16 +145,10 @@ export class UserController {
     newUserRequest: NewUserRequest,
   ): Promise<User> {
     const password = await hash(newUserRequest.password, await genSalt());
-    const pass = await hash('123456789', await genSalt());
-    console.log(pass);
-
     const savedUser = await this.userRepository.create(
       _.omit(newUserRequest, 'password'),
     );
-    console.log(savedUser);
-
     await this.userRepository.userCredential(savedUser.id).create({id: savedUser.id, password});
-
     return savedUser;
   }
 }
